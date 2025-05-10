@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>İsim Kayıt, Güncelleme ve Silme</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body {
+            background-color: #1e1e2f;
+            color: #ffffff;
+            font-family: "Courier New", Courier, monospace;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            font-family: inherit;
+            font-size: 16px;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            background-color: #2a2a40;
+            color: #fff;
+            border: 1px solid #444;
+        }
+
+        button {
+            background-color: #03a9f4;
+            color: white;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0288d1;
+        }
+
+        #guncelleBtn {
+            background-color: #8bc34a;
+        }
+
+        #guncelleBtn:hover {
+            background-color: #689f38;
+        }
+
+        #kayitListesi {
+            margin-top: 30px;
+            border-top: 1px solid #555;
+            padding-top: 15px;
+        }
+
+        ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .listeSatiri {
+            background-color: #2a2a40;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .listeSatiri span {
+            flex-grow: 1;
+        }
+
+        .listeSatiri button {
+            background-color: #f57c00;
+            border: none;
+            padding: 6px 12px;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .listeSatiri button:hover {
+            background-color: #ef6c00;
+        }
+
+        .listeSatiri .silBtn {
+            background-color: #e53935;
+        }
+
+        .listeSatiri .silBtn:hover {
+            background-color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <h2>İsim Kayıt, Güncelleme ve Silme</h2>
+    
+    <input type="text" id="isimInput" placeholder="Adınızı girin">
+    <button onclick="isimKaydet()">Kaydet</button>
+    <button id="guncelleBtn" onclick="isimGuncelle()" style="display:none;">Güncelle</button>
+    
+    <div id="kayitListesi">
+        <h3>Kayıtlı İsimler:</h3>
+        <ul id="isimlerListesi"></ul>
+    </div>
+
+    <script>
+        // Firebase konfigürasyonu
+        const firebaseConfig = {
+            apiKey: "AIzaSyABCD...",
+            authDomain: "esahin-5607e.firebaseapp.com",
+            databaseURL: "https://esahin-5607e-default-rtdb.firebaseio.com",
+            projectId: "esahin-5607e",
+            storageBucket: "esahin-5607e.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123def456"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let duzenlenenId = null;
+
+        function isimKaydet() {
+            const isim = document.getElementById('isimInput').value.trim();
+            if (isim === "") {
+                alert("Lütfen bir isim girin!");
+                return;
+            }
+
+            database.ref('kayitlar').push({
+                isim: isim,
+                tarih: new Date().toISOString()
+            }).then(() => {
+                document.getElementById('isimInput').value = "";
+            });
+        }
+
+        function isimGuncelle() {
+            const yeniIsim = document.getElementById('isimInput').value.trim();
+            if (yeniIsim === "" || !duzenlenenId) return;
+
+            database.ref('kayitlar/' + duzenlenenId).update({
+                isim: yeniIsim
+            }).then(() => {
+                document.getElementById('isimInput').value = "";
+                duzenlenenId = null;
+                document.getElementById('guncelleBtn').style.display = "none";
+            });
+        }
+
+        function duzenle(kayitId, mevcutIsim) {
+            document.getElementById('isimInput').value = mevcutIsim;
+            duzenlenenId = kayitId;
+            document.getElementById('guncelleBtn').style.display = "inline-block";
+        }
+
+        function sil(kayitId) {
+            if (confirm("Bu kaydı silmek istediğinize emin misiniz?")) {
+                database.ref('kayitlar/' + kayitId).remove();
+            }
+        }
+
+        database.ref('kayitlar').on('value', (snapshot) => {
+            const isimlerListesi = document.getElementById('isimlerListesi');
+            isimlerListesi.innerHTML = '';
+            const veriler = snapshot.val();
+            if (veriler) {
+                Object.keys(veriler).forEach(key => {
+                    const kayit = veriler[key];
+                    const li = document.createElement('li');
+                    li.className = "listeSatiri";
+                    li.innerHTML = `
+                        <span>${kayit.isim} - ${new Date(kayit.tarih).toLocaleString()}</span>
+                        <div>
+                            <button onclick="duzenle('${key}', '${kayit.isim}')">Düzenle</button>
+                            <button class="silBtn" onclick="sil('${key}')">Sil</button>
+                        </div>
+                    `;
+                    isimlerListesi.appendChild(li);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
