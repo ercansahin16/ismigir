@@ -5,6 +5,7 @@
     <title>İsim Kayıt, Güncelleme ve Silme</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             background-color: #1e1e2f;
@@ -102,6 +103,25 @@
         .listeSatiri .silBtn:hover {
             background-color: #c62828;
         }
+        @media (max-width: 600px) {
+    .listeSatiri {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .listeSatiri div {
+        margin-top: 8px;
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .listeSatiri button {
+        width: auto;
+        flex: 1;
+    }
+        }
+        
     </style>
 </head>
 <body>
